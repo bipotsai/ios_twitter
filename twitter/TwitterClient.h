@@ -32,5 +32,6 @@
 - (void)unfavorite:(NSString *)tweetIdStr completion:(void (^)(NSError *error))completion;
 - (void)retweet:(NSString *)tweetIdStr completion:(void (^)(NSError *error))completion;
 - (void)getProfileBanner:(NSString *)userIdStr completion:(void (^)(NSDictionary *bannerData, NSError *error))completion;
+- (User *)getUser;
 
 @end

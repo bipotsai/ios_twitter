@@ -8,7 +8,7 @@
 
 #import "TwitterClient.h"
 #import "Tweet.h"
-
+#import "User.h"
 NSString * const kTwitterConsumerKey = @"NwlJvq274whdPxt2KNBw89ikO";
 NSString * const kTwitterConsumerSecret = @"iZw2uzjwcq7AIbHuaCY5VeIMDcI0YE52BRybFvBAFYR2g2qwAV";
 NSString * const kTwitterBaseUrl = @"https://api.twitter.com";
@@ -16,7 +16,7 @@ NSString * const kTwitterBaseUrl = @"https://api.twitter.com";
 @interface TwitterClient ()
 
 @property (nonatomic, strong) void (^loginCompletion)(User *user, NSError *error);
-
+@property (strong, nonatomic) User* user;
 @end
 
 @implementation TwitterClient
@@ -44,11 +44,12 @@ NSString * const kTwitterBaseUrl = @"https://api.twitter.com";
         // Get current user info
         [self GET:@"1.1/account/verify_credentials.json" parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
             User *user = [[User alloc] initWithDictionary:responseObject];
-            [self getProfileBanner:user.userId completion:^(NSDictionary *bannerData, NSError *error) {
-                [user setBannerUrl:bannerData];
+//            [self getProfileBanner:user.userId completion:^(NSDictionary *bannerData, NSError *error) {
+//                [user setBannerUrl:bannerData];
                 [User setCurrentUser:user];
+                _user = user;
                 self.loginCompletion(user, nil);
-            }];
+//            }];
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             NSLog(@"Failed to get user data %@", error);
             self.loginCompletion(nil, error);
@@ -176,6 +177,10 @@ NSString * const kTwitterBaseUrl = @"https://api.twitter.com";
         NSLog(@"Failed to get user banner with error %@", error);
         completion(nil, error);
     }];
+}
+
+- (User *)getUser{
+    return _user;
 }
 
 // Singleton
