@@ -7,6 +7,7 @@
 //
 
 #import "Tweet.h"
+#import "DateTools.h"
 
 @implementation Tweet
 
@@ -18,6 +19,7 @@
         NSDateFormatter *formater = [[NSDateFormatter alloc] init];
         formater.dateFormat = @"EEE MMM d HH:mm:ss Z y";
         self.createAt = [formater dateFromString:createAtString];
+        self.createdAgo = self.createAt.shortTimeAgoSinceNow;
         self.user = [[User alloc] initWithDictionary:dictionary[@"user"]];
         self.favoriteCount = [dictionary[@"favorite_count"] integerValue];
         self.favorited = [dictionary[@"favorited"] boolValue];

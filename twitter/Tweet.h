@@ -19,6 +19,7 @@
 @property (nonatomic, strong) NSString *text;
 @property (nonatomic, strong) Tweet *childTweet; // for retweet/like/reply. For example, for retweet, it is under "retweeted_status"
 @property (nonatomic, strong) NSDate *createAt;
+@property (nonatomic, strong) NSString *createdAgo;
 @property (nonatomic, strong) User *user;
 // TODO: add one for hashtags
 // TODO: add one for other media/urls

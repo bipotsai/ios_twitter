@@ -28,8 +28,10 @@
     [self.profileImage setImageWithURL:[NSURL URLWithString:tweet.user.profileImageUrl]];
     self.idLabel.text = tweet.user.name;
     self.locationLabel.text = tweet.user.location;
-    //self.tweetTimeLabel.text = tweet.createdAgo;
+    self.tweetTimeLabel.text = tweet.createdAgo;
     self.contentLabel.text = tweet.text;
+    self.favoriteCountLabel.text = [NSString stringWithFormat:@"%ld",(long)tweet.favoriteCount];
+    self.retweetCountLabel.text = [NSString stringWithFormat:@"%ld", tweet.retweetCount];
 }
 
 - (void) onReply {

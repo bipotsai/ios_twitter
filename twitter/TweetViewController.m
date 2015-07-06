@@ -16,6 +16,7 @@
 @property (weak, nonatomic) IBOutlet UILabel *idLabel;
 @property (weak, nonatomic) IBOutlet UILabel *locationLabel;
 @property (weak, nonatomic) IBOutlet UITextField *contentInput;
+@property (weak, nonatomic) IBOutlet UILabel *contentLabel;
 
 @end
 
@@ -27,20 +28,26 @@
     UIBarButtonItem* newTweetButton = [[UIBarButtonItem alloc] initWithTitle:@"Tweet" style:UIBarButtonItemStylePlain target:self action:@selector(onNewTweet)];
     self.navigationItem.rightBarButtonItem = newTweetButton;
 
-    
-    
-    NSLog(@"TweetViewController");
     User *user = [User currentUser];
-    NSLog(@"onNewTweet profileImageUrl %@", user.profileImageUrl);
-    
-    
-    [self.profileImage setImageWithURL:[NSURL URLWithString:user.profileImageUrl]];
-    
-    self.idLabel.text = user.name;
-    self.locationLabel.text = user.location;
 
-    self.tweetIDForResponse = _tweet.tweetId;
+    if(_tweet.tweetId.length > 0){
+        self.title = @"Reply Tweet";
+        [self.profileImage setImageWithURL:[NSURL URLWithString:_tweet.user.profileImageUrl]];
+        self.idLabel.text = _tweet.user.name;
+        self.locationLabel.text = _tweet.user.location;
+        
+        self.tweetIDForResponse = _tweet.tweetId;
+        self.contentLabel.text = _tweet.text;
 
+    }else{
+        self.title = @"New Tweet";
+        [self.profileImage setImageWithURL:[NSURL URLWithString:user.profileImageUrl]];
+        self.idLabel.text = user.name;
+        self.locationLabel.text = user.location;
+        self.tweetIDForResponse = @"";
+        [self.contentLabel setHidden:YES];
+
+    } 
 
 }
 
@@ -53,26 +60,16 @@
     _tweet = tweet;
 }
 - (void)onNewTweet {
-    NSLog(@"New Tweet Please %@",self.tweetIDForResponse);
-    
 
-    
-    
-    
-//    NSDictionary* params =
-//    [[NSDictionary alloc] initWithObjectsAndKeys:self.contentInput.text,@"status",
-//     self.tweetIDForResponse,@"in_reply_to_status_id",
-//     nil
-//     ];
     User *user = [User currentUser];
     
     NSString *string1 = [NSString stringWithFormat:@"@%@ %@", user.screenname, self.contentInput.text];
     NSLog(@"%@", string1);
     NSMutableDictionary *params = [NSMutableDictionary dictionary];
     [params setObject:string1 forKey:@"status"];
-    //if (tweet.in_reply_to_status_id) {
+    if(self.tweetIDForResponse.length > 0){
         [params setObject:self.tweetIDForResponse forKey:@"in_reply_to_status_id"];
-    //}
+    }
     
     
     

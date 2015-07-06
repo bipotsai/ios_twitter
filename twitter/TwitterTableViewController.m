@@ -12,10 +12,13 @@
 #import "TwitterCell.h"
 #import "Tweet.h"
 #import "TweetViewController.h"
+#import "SVProgressHUD.h"
 
 @interface TwitterTableViewController () <UITableViewDataSource, UITableViewDelegate, TwitterCellDelegate>
+
 @property (strong, nonatomic) NSMutableArray *tweetsArray;
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
+@property (strong, nonatomic) UIRefreshControl *refreshControl;
 
 @end
 
@@ -25,6 +28,8 @@
     [super viewDidLoad];
     self.tableView.dataSource = self;
     self.tableView.delegate = self;
+    self.tableView.estimatedRowHeight = 100;
+    self.tableView.rowHeight = UITableViewAutomaticDimension;
     self.title = @"Twitter";
     
     // Setup Navigation Bar
@@ -33,6 +38,10 @@
     UIBarButtonItem* newTweetButton = [[UIBarButtonItem alloc] initWithTitle:@"New" style:UIBarButtonItemStylePlain target:self action:@selector(onNewTweet)];
     self.navigationItem.rightBarButtonItem = newTweetButton;
 
+    // Refresh Table
+    self.refreshControl = [[UIRefreshControl alloc] init];
+    [self.refreshControl addTarget:self action:@selector(getInitialTweets) forControlEvents:UIControlEventValueChanged];
+    [self.tableView insertSubview:self.refreshControl atIndex:0];
     
     [self getInitialTweets];
 }
@@ -48,6 +57,9 @@
 }
 
 - (void)getTweets:(NSDictionary *)params {
+    [SVProgressHUD setBackgroundColor:[[UIColor grayColor] colorWithAlphaComponent:0.7]];
+    [SVProgressHUD setForegroundColor:[UIColor whiteColor]];
+    [SVProgressHUD showWithStatus:@"Loading Tweets"];
     [[TwitterClient sharedInstance] homeTimelineWithParams:nil completion:^(NSArray *tweets, NSError *error) {
         [self addTweetsToTable:tweets];
     }];
@@ -57,7 +69,9 @@
     NSLog(@"addTweetsToTable");
     [self.tweetsArray addObjectsFromArray:tweets];
     [self.tableView reloadData];
-
+    // Kill any and all UI loading helpers
+    [self.refreshControl endRefreshing];
+    [SVProgressHUD dismiss];
 }
 
 - (void)onLogout {
@@ -95,7 +109,31 @@
         TwitterCell *cell = [tableView dequeueReusableCellWithIdentifier:@"TwitterCell" forIndexPath:indexPath];
     cell.tweet = self.tweetsArray[indexPath.row];
     cell.delegate = self;
+    NSLog(@"cell");
+    // End of the table?
+//    if (indexPath.row == [self tableView:self.tableView numberOfRowsInSection:0] - 1) {
+//        NSLog(@"load more");
+//        [self getMoreTweets:nil];
+//    }
+    
     return cell;
+}
+
+- (void)getMoreTweets:(NSDictionary *) params {
+    // Grab id of last tweet and set to max_id
+    Tweet* lastTweet = self.tweetsArray.lastObject;
+    NSNumber *maxID = [[NSNumber alloc] initWithInteger:lastTweet.tweetId];
+    
+    if (params == nil) {
+        params = [[NSDictionary alloc] init];
+    }
+    
+    NSMutableDictionary *paramsToSend = [NSMutableDictionary dictionaryWithDictionary:params];
+    [paramsToSend setObject:maxID forKey:@"max_id"];
+    
+    [[TwitterClient sharedInstance] homeTimelineWithParams:paramsToSend completion:^(NSArray *tweets, NSError *error) {
+        [self addTweetsToTable:tweets];
+    }];
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
